@@ -17,7 +17,7 @@ from torch import nn
 import sys
 import scipy as sp
 from skimage.measure import label, regionprops
-from training.dataset.library.bi_online_generation import random_get_hull
+from training.dataset.utils.bi_online_generation import random_get_hull
 import albumentations as alb
 
 import warnings
