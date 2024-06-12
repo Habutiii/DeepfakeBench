@@ -1,2 +1,5 @@
 __pycache__/
 preprocessing/dataset_json/*
+preprocessing/logs/*
+results/*
+*.csv

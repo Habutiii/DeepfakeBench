@@ -486,6 +486,12 @@ if __name__ == '__main__':
     elif dataset_name == 'UADFV':
         sub_dataset_names = ['fake', 'real']
         sub_dataset_paths = [Path(os.path.join(dataset_path, name)) for name in sub_dataset_names]
+
+    ## Custom Dataset
+    elif dataset_name == 'TestSet':
+        sub_dataset_names = ['fake', 'real']
+        sub_dataset_paths = [Path(os.path.join(dataset_path, name)) for name in sub_dataset_names]
+        
     else:
         raise ValueError(f"Dataset {dataset_name} not recognized")
     

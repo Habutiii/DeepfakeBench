@@ -1,6 +1,6 @@
 preprocess:
   dataset_name: # the name of dataset
-    choices: ['FaceForensics++','Celeb-DF-v1', 'Celeb-DF-v2', 'DFDCP', 'DFDC', 'DeeperForensics-1.0','UADFV']
+    choices: ['FaceForensics++','Celeb-DF-v1', 'Celeb-DF-v2', 'DFDCP', 'DFDC', 'DeeperForensics-1.0','UADFV', 'TestSet']
     default: 'FaceForensics++'
   dataset_root_path: # the root path to the dataset
     type: str
@@ -20,8 +20,8 @@ preprocess:
 
 rearrange:
   dataset_name: # the name of dataset
-    choices: ['FaceForensics++', 'DeepFakeDetection', 'Celeb-DF-v1', 'Celeb-DF-v2','DFDCP', 'DFDC', 'DeeperForensics-1.0','UADFV','FaceShifter']
-    default: 'FaceForensics++'
+    choices: ['FaceForensics++', 'DeepFakeDetection', 'Celeb-DF-v1', 'Celeb-DF-v2','DFDCP', 'DFDC', 'DeeperForensics-1.0','UADFV','FaceShifter','TestSet']
+    default: 'TestSet'
   dataset_root_path: # the root path to the dataset
     type: str
     default: 'C:\Users\silas\Desktop\Work\CSA2024\deepfake\datasets'

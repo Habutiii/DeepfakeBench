@@ -5,6 +5,7 @@ import os
 import numpy as np
 from os.path import join
 import cv2
+import csv
 import random
 import datetime
 import time
@@ -13,7 +14,7 @@ import pickle
 from tqdm import tqdm
 from copy import deepcopy
 from PIL import Image as pil_image
-from metrics.utils import get_test_metrics
+from metrics.utils import get_test_metrics, get_video_data
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -113,10 +114,13 @@ def test_one_dataset(model, data_loader):
         label_lists += list(data_dict['label'].cpu().detach().numpy())
         prediction_lists += list(predictions['prob'].cpu().detach().numpy())
         feature_lists += list(predictions['feat'].cpu().detach().numpy())
+
+        #if i == 4:
+            #break
     
     return np.array(prediction_lists), np.array(label_lists),np.array(feature_lists)
     
-def test_epoch(model, test_data_loaders):
+def test_epoch(model, test_data_loaders, model_name):
     # set model to eval mode
     model.eval()
 
@@ -131,8 +135,11 @@ def test_epoch(model, test_data_loaders):
         predictions_nps, label_nps,feat_nps = test_one_dataset(model, test_data_loaders[key])
         
         # compute metric for each dataset
+        #metric_one_dataset = get_test_metrics(y_pred=predictions_nps, y_true=label_nps,
+                                              #img_names=data_dict['image'][:5*32])
         metric_one_dataset = get_test_metrics(y_pred=predictions_nps, y_true=label_nps,
                                               img_names=data_dict['image'])
+        
         metrics_all_datasets[key] = metric_one_dataset
         
         # info for each dataset
@@ -140,7 +147,24 @@ def test_epoch(model, test_data_loaders):
         for k, v in metric_one_dataset.items():
             tqdm.write(f"{k}: {v}")
 
+        #write_to_csv(key, data_dict['image'][:5*32], predictions_nps, label_nps)
+        write_to_csv(f'{model_name}_{key}_video', data_dict['image'], predictions_nps, label_nps)
+        if type(data_dict['image'][0]) is not list:
+            video_names, video_preds, video_labels = get_video_data(data_dict['image'], predictions_nps, label_nps)
+            write_to_csv(f'{model_name}_{key}_video', video_names, video_preds, video_labels)
+
     return metrics_all_datasets
+
+def write_to_csv(name, img_names, y_pred, y_true):
+    csv_name = f'{name}_results.csv'
+    with open(csv_name, 'w', newline='') as file:
+        writer = csv.writer(file)
+        
+        writer.writerow(['file', 'predicted', 'label'])
+        
+        for img_name, pred, label in zip(img_names, y_pred, y_true):
+            writer.writerow([img_name, pred, label]) 
+    
 
 @torch.no_grad()
 def inference(model, data_dict):
@@ -193,7 +217,7 @@ def main():
         print('Fail to load the pre-trained weights')
     
     # start testing
-    best_metric = test_epoch(model, test_data_loaders)
+    best_metric = test_epoch(model, test_data_loaders, config['model_name'])
     print('===> Test Done!')
 
 if __name__ == '__main__':
