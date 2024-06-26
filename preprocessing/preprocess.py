@@ -411,7 +411,7 @@ def preprocess(dataset_path, mask_path, mode, num_frames, stride, logger):
         duration_minutes = (end_time - start_time) / 60
         logger.info(f"Total time taken: {duration_minutes:.2f} minutes")
 
-if __name__ == '__main__':
+def main():
     # from config.yaml load parameters
     yaml_path = './config.yaml'
     # open the yaml file
@@ -489,9 +489,9 @@ if __name__ == '__main__':
 
     ## Custom Dataset
     elif dataset_name == 'TestSet':
-        sub_dataset_names = ['fake', 'real']
+        #sub_dataset_names = ['fake', 'real']
+        sub_dataset_names = ['fake']
         sub_dataset_paths = [Path(os.path.join(dataset_path, name)) for name in sub_dataset_names]
-        
     else:
         raise ValueError(f"Dataset {dataset_name} not recognized")
     
@@ -500,7 +500,7 @@ if __name__ == '__main__':
         logger.error(f"Dataset path does not exist: {dataset_path}")
         sys.exit()
 
-    if 'sub_dataset_paths' in globals() and len(sub_dataset_paths) != 0:
+    if len(sub_dataset_paths) != 0:
         # Check if sub_dataset path exists
         for sub_dataset_path in sub_dataset_paths:
             if not Path(sub_dataset_path).exists():
@@ -518,3 +518,7 @@ if __name__ == '__main__':
         logger.error(f"Sub Dataset path does not exist: {sub_dataset_paths}")
         sys.exit()
     logger.info("Face cropping complete!")
+
+if __name__ == '__main__':
+    main()
+    

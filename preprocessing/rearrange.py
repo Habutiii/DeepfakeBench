@@ -528,7 +528,7 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
     # print the successfully generated dataset dictionary
     print(f"{dataset_name}.json generated successfully.")
 
-if __name__ == '__main__':
+def main():
     # from config.yaml load parameters
     yaml_path = './config.yaml'
     # open the yaml file
@@ -545,3 +545,6 @@ if __name__ == '__main__':
     perturbation = config['rearrange']['perturbation']['default']
     # Call the generate_dataset_file function
     generate_dataset_file(dataset_name, dataset_root_path, output_file_path, comp, perturbation)
+
+if __name__ == '__main__':
+    main()

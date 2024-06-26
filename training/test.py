@@ -2,6 +2,7 @@
 eval pretained model.
 """
 import os
+import sys
 import numpy as np
 from os.path import join
 import cv2
@@ -14,7 +15,6 @@ import pickle
 from tqdm import tqdm
 from copy import deepcopy
 from PIL import Image as pil_image
-from metrics.utils import get_test_metrics, get_video_data
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -23,13 +23,15 @@ import torch.nn.functional as F
 import torch.utils.data
 import torch.optim as optim
 
-from dataset.abstract_dataset import DeepfakeAbstractBaseDataset
+from .dataset.abstract_dataset import DeepfakeAbstractBaseDataset
+from dataset.abstract_dataset_resize import AbstractResizeBaseDataset
 from dataset.ff_blend import FFBlendDataset
 from dataset.fwa_blend import FWABlendDataset
 from dataset.pair_dataset import pairDataset
 
 from trainer.trainer import Trainer
 from detectors import DETECTOR
+from metrics.utils import get_test_metrics, get_video_data
 from metrics.base_metrics_class import Recorder
 from collections import defaultdict
 
@@ -44,7 +46,6 @@ parser.add_argument("--test_dataset", nargs="+")
 parser.add_argument('--weights_path', type=str, 
                     default='/mntcephfs/lab_data/zhiyuanyan/benchmark_results/auc_draw/cnn_aug/resnet34_2023-05-20-16-57-22/test/FaceForensics++/ckpt_epoch_9_best.pth')
 #parser.add_argument("--lmdb", action='store_true', default=False)
-args = parser.parse_args()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = "cpu"
@@ -64,9 +65,9 @@ def prepare_testing_data(config):
         # update the config dictionary with the specific testing dataset
         config = config.copy()  # create a copy of config to avoid altering the original one
         config['test_dataset'] = test_name  # specify the current test dataset
-        test_set = DeepfakeAbstractBaseDataset(
+        test_set = AbstractResizeBaseDataset(
                 config=config,
-                mode='test', 
+                size=256
             )
         test_data_loader = \
             torch.utils.data.DataLoader(
@@ -143,17 +144,30 @@ def test_epoch(model, test_data_loaders, model_name):
         metrics_all_datasets[key] = metric_one_dataset
         
         # info for each dataset
+        output = ""
+        start_time = time.time()
+
         tqdm.write(f"dataset: {key}")
         for k, v in metric_one_dataset.items():
             tqdm.write(f"{k}: {v}")
+            output += f"{k}: {v}" + '/n'
+
+        output += f"time: {time.time() - start_time}"
 
         #write_to_csv(key, data_dict['image'][:5*32], predictions_nps, label_nps)
-        write_to_csv(f'{model_name}_{key}_video', data_dict['image'], predictions_nps, label_nps)
+        output_path = f"./results/{model_name}/"
+        write_to_txt(f"{output_path}{key}", output)
+        write_to_csv(f'{output_path}{key}', data_dict['image'], predictions_nps, label_nps)
         if type(data_dict['image'][0]) is not list:
             video_names, video_preds, video_labels = get_video_data(data_dict['image'], predictions_nps, label_nps)
-            write_to_csv(f'{model_name}_{key}_video', video_names, video_preds, video_labels)
+            write_to_csv(f'{output_path}{key}_video', video_names, video_preds, video_labels)
 
     return metrics_all_datasets
+
+def write_to_txt(name, output):
+    txt_name = f'{name}_results.txt'
+    with open(txt_name, 'w') as file:
+        file.write(output)
 
 def write_to_csv(name, img_names, y_pred, y_true):
     csv_name = f'{name}_results.csv'
@@ -172,8 +186,10 @@ def inference(model, data_dict):
     return predictions
 
 
-def main():
+def main(passed_args=None):
     # parse options and load config
+    args = parser.parse_args(passed_args)
+
     with open(args.detector_path, 'r') as f:
         config = yaml.safe_load(f)
     if on_2060:
@@ -201,6 +217,16 @@ def main():
     # prepare the testing data loader
     test_data_loaders = prepare_testing_data(config)
     
+    '''data_arr = []
+    for data_dict in test_data_loaders[config['test_dataset'][0]]:
+        data_arr.append(data_dict)
+    
+    with open('data.stuff' , 'wb') as f:
+        pickle.dump(data_arr, f)
+    torch.save(test_data_loaders[config['test_dataset'][0]], 'dataloader.pth')
+    
+    return'''
+
     # prepare the model (detector)
     model_class = DETECTOR[config['model_name']]
     model = model_class(config).to(device)

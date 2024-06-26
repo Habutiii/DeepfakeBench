@@ -2,7 +2,7 @@
 log_dir: /data/home/zhiyuanyan/DeepfakeBench/debug_logs/ucf
 
 # model setting
-pretrained: /data/home/zhiyuanyan/DeepfakeBench/training/pretrained/xception-b5690688.pth   # path to a pre-trained model, if using one
+pretrained: ../DeepfakeBench/training/pretrained/xception-b5690688.pth   # path to a pre-trained model for backbone??, if using one
 # pretrained: '/home/zhiyuanyan/.cache/torch/hub/checkpoints/resnet34-b627a593.pth'   # path to a pre-trained model, if using one
 model_name: ucf   # model name
 backbone_name: xception  # backbone name
@@ -20,11 +20,12 @@ all_dataset: [FaceForensics++, FF-F2F, FF-DF, FF-FS, FF-NT, FaceShifter, DeepFak
 train_dataset: [FF-F2F, FF-DF, FF-FS, FF-NT,]
 test_dataset: [Celeb-DF-v2]
 dataset_type: pair
+dataset_json_folder: './preprocessing/dataset_json'
 
 compression: c23  # compression-level for videos
 train_batchSize: 16   # training batch size
 test_batchSize: 32   # test batch size
-workers: 8   # number of data loading workers
+workers: 1   # number of data loading workers
 frame_num: {'train': 32, 'test': 32}   # number of frames to use per video in training and testing
 resolution: 256   # resolution of output image to network
 with_mask: false   # whether to include mask information in the input

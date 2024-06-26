@@ -154,7 +154,7 @@ class SpslDetector(AbstractDetector):
             self.total += data_dict['label'].size(0)
 
             # Save video names for computing video-level AUC
-            self.video_names.extend(data_dict['name'])
+            #self.video_names.extend(data_dict['name'])
         return pred_dict
 
     def phase_without_amplitude(self, img):

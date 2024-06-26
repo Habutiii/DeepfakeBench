@@ -62,7 +62,7 @@ class UCFDetector(AbstractDetector):
         self.encoder_c = self.build_backbone(config)
 
         self.loss_func = self.build_loss(config)
-        self.prob, self.label = [], []
+        self.prob, self.label, self.video_names = [], [], []
         self.correct, self.total = 0, 0
         
         # basic function
@@ -261,9 +261,9 @@ class UCFDetector(AbstractDetector):
             self.correct += correct
             self.total += data_dict['label'].size(0)
 
-            pred_dict = {'cls': out_sha, 'feat': sha_feat}
+            pred_dict = {'cls': out_sha, 'prob': prob_sha, 'feat': sha_feat}
             # Save video names for computing video-level AUC
-            self.video_names.extend(data_dict['name'])
+            #self.video_names.extend(data_dict['name'])
             return  pred_dict
 
         bs = f_share.size(0)
