@@ -6,3 +6,4 @@ training/pretrained/*
 training/weights/*
 *.csv
 *.xlsx
+*.mp4

@@ -276,9 +276,11 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
                     video_name = video_path.name
                     frame_paths = [os.path.join(video_path, frame.name) for frame in os.scandir(video_path)]
                     dataset_dict[dataset_name][label]['train'][video_name] = {'label': label, 'frames': frame_paths}
+                    dataset_dict[dataset_name][label]['test'][video_name] = {'label': label, 'frames': frame_paths}
+                    dataset_dict[dataset_name][label]['val'][video_name] = {'label': label, 'frames': frame_paths}
         
         # Special case for test&val data of Celeb-DF-v1/2
-        with open(os.path.join(dataset_root_path, dataset_name, 'List_of_testing_videos.txt'), 'r') as f:
+        '''with open(os.path.join(dataset_root_path, dataset_name, 'List_of_testing_videos.txt'), 'r') as f:
             lines = f.readlines()
         for line in lines:
             if 'real' in line:
@@ -292,7 +294,7 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
             frame_paths = glob.glob(
                 os.path.join(dataset_root_path, dataset_name, line.split(' ')[1].split('/')[0], 'frames', vidname, '*png'))
             dataset_dict[dataset_name][label]['test'][vidname] = {'label': label, 'frames': frame_paths}
-            dataset_dict[dataset_name][label]['val'][vidname] = {'label': label, 'frames': frame_paths}
+            dataset_dict[dataset_name][label]['val'][vidname] = {'label': label, 'frames': frame_paths}'''
 
     ## Celeb-DF-v2 dataset
     ## Note: videos in Celeb-DF-v1/2 are not in the same format as in FaceForensics++ dataset

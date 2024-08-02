@@ -68,7 +68,9 @@ label_dict:
   # roop
   roop_Fake: 1
   roop_Real: 0
-
+  # Custom
+  TestSet_Fake: 1
+  TestSet_Real: 0
 
 
 # data augmentation

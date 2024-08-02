@@ -119,7 +119,7 @@ def test_one_dataset(model, data_loader):
         #if i == 4:
             #break
     
-    return np.array(prediction_lists), np.array(label_lists),np.array(feature_lists)
+    return np.array(prediction_lists), np.array(label_lists) #,np.array(feature_lists)
     
 def test_epoch(model, test_data_loaders, model_name):
     # set model to eval mode
@@ -132,8 +132,10 @@ def test_epoch(model, test_data_loaders, model_name):
     keys = test_data_loaders.keys()
     for key in keys:
         data_dict = test_data_loaders[key].dataset.data_dict
+        
         # compute loss for each dataset
-        predictions_nps, label_nps,feat_nps = test_one_dataset(model, test_data_loaders[key])
+        start_time = time.time()
+        predictions_nps, label_nps = test_one_dataset(model, test_data_loaders[key])
         
         # compute metric for each dataset
         #metric_one_dataset = get_test_metrics(y_pred=predictions_nps, y_true=label_nps,
@@ -145,17 +147,17 @@ def test_epoch(model, test_data_loaders, model_name):
         
         # info for each dataset
         output = ""
-        start_time = time.time()
 
         tqdm.write(f"dataset: {key}")
         for k, v in metric_one_dataset.items():
             tqdm.write(f"{k}: {v}")
-            output += f"{k}: {v}" + '/n'
+            output += f"{k}: {v}" + '\n'
 
         output += f"time: {time.time() - start_time}"
 
         #write_to_csv(key, data_dict['image'][:5*32], predictions_nps, label_nps)
         output_path = f"./results/{model_name}/"
+        os.makedirs(output_path, exist_ok=True)
         write_to_txt(f"{output_path}{key}", output)
         write_to_csv(f'{output_path}{key}', data_dict['image'], predictions_nps, label_nps)
         if type(data_dict['image'][0]) is not list:
