@@ -2,7 +2,10 @@ __pycache__/
 preprocessing/dataset_json/*
 preprocessing/logs/*
 results/*
-training/pretrained/*
+training/pretrained/I3D_8x8_R50.pth
+training/pretrained/recce_best.pth
+training/pretrained/srm_best.pth
+training/pretrained/ucf_best.pth
 *.csv
 *.xlsx
 *.mp4
