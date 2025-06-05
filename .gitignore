@@ -3,7 +3,7 @@ preprocessing/dataset_json/*
 preprocessing/logs/*
 results/*
 training/pretrained/*
-training/weights/*
 *.csv
 *.xlsx
 *.mp4
+datasets/*
