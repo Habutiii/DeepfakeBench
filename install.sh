@@ -1,32 +1,28 @@
 #!/bin/bash
 
-pip install numpy==1.21.5
-pip install pandas==1.3.5
-pip install Pillow==9.0.1
-pip install dlib==19.24.0
-pip install imageio==2.9.0
-pip install imgaug==0.4.0
-pip install tqdm==4.61.0
-pip install scipy==1.7.3
-pip install seaborn==0.11.2
-pip install pyyaml==6.0
-pip install imutils==0.5.4
-pip install opencv-python==4.6.0.66
-pip install scikit-image==0.19.2
-pip install scikit-learn==1.0.2
-pip install albumentations==1.1.0
-pip install torch==1.12.0+cu113 torchvision==0.13.0+cu113 torchaudio==0.12.0 --extra-index-url https://download.pytorch.org/whl/cu113
-pip install efficientnet-pytorch==0.7.1
-pip install timm==0.6.12
-pip install segmentation-models-pytorch==0.3.2
-pip install torchtoolbox==0.1.8.2
-pip install tensorboard==2.10.1
-pip install setuptools==59.5.0 \
-pip install loralib \
-pip install pytorchvideo \
-pip install einops \
-pip install transformers \
-pip install filterpy \
-pip install simplejson \
-pip install kornia \
-pip install git+https://github.com/openai/CLIP.git
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Create environment with Python 3.7
+conda create -n deepfakebench python=3.7 -y
+
+# Activate environment (this works in interactive shells; use eval for scripts)
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate deepfakebench
+
+# Install packages from conda
+conda install -y  --override-channels -c conda-forge -c nvidia -c pytorch \
+    numpy=1.21.5 pandas=1.3.5 pillow=9.0.1 dlib=19.24.0 imageio=2.9.0 \
+    tqdm=4.61.0 scipy=1.7.3 seaborn=0.11.2 pyyaml=6.0 \
+    scikit-image=0.19.2 scikit-learn=1.0.2 \
+    pytorch torchvision torchaudio pytorch-cuda \
+    setuptools simplejson einops filterpy
+
+# Install pip-only packages
+pip install opencv-python==4.6.0.66 einops==0.4.1 \
+    lmdb imgaug==0.4.0 imutils==0.5.4 albumentations==1.1.0 \
+    efficientnet-pytorch==0.7.1 timm==0.6.12 segmentation-models-pytorch==0.3.2 \
+    torchtoolbox==0.1.8.2 tensorboard==2.10.1 loralib pytorchvideo \
+    kornia transformers==4.26.1 fvcore git+https://github.com/openai/CLIP.git
+
+echo "Environment 'deepfakebench' setup complete."
