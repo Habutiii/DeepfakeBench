@@ -11,27 +11,27 @@ detector_map = {
     ## Naive Models
     'xception': {
         "config":"./training/config/detector/xception.yaml",
-        "weights":"./training/weights/xception_best.pth"
+        "weights":"./training/pretrained/xception_best.pth"
     },
     
     'resnet': {
         "config":"./training/config/detector/resnet34.yaml",
-        "weights":"./training/weights/cnnaug_best.pth"
+        "weights":"./training/pretrained/cnnaug_best.pth"
     },
     
     'efficientnetb4': {
         "config": "./training/config/detector/efficientnetb4.yaml",
-        "weights": "./training/weights/effnb4_best.pth"
+        "weights": "./training/pretrained/effnb4_best.pth"
     },
     
     'meso4': {
         "config": "./training/config/detector/meso4.yaml",
-        "weights": "./training/weights/meso4_best.pth"
+        "weights": "./training/pretrained/meso4_best.pth"
     },
     
     'meso4Inception': {
         "config": "./training/config/detector/meso4Inception.yaml",
-        "weights": "./training/weights/meso4Incep_best.pth"
+        "weights": "./training/pretrained/meso4Incep_best.pth"
     },
     
     # Spatial Models
@@ -39,26 +39,26 @@ detector_map = {
     
     'core': {  # Xception based model
         "config":"./training/config/detector/core.yaml",
-        "weights":"./training/weights/core_best.pth"
+        "weights":"./training/pretrained/core_best.pth"
     },
     'ucf': {  #  Xception based model
         "config": "./training/config/detector/ucf.yaml",
-        "weights": "./training/weights/ucf_best.pth"
+        "weights": "./training/pretrained/ucf_best.pth"
     },
     
     'ffd' : {  # Xception based model
         "config": "./training/config/detector/ffd.yaml",
-        "weights": "./training/weights/ffd_best.pth"
+        "weights": "./training/pretrained/ffd_best.pth"
     },
     
     'capsule': {   # Capsule Network based model
         "config": "./training/config/detector/capsule_net.yaml",
-        "weights": "./training/weights/capsule_best.pth"
+        "weights": "./training/pretrained/capsule_best.pth"
     },
     
     'recce': {  # Designed based model
         "config": "./training/config/detector/recce.yaml",
-        "weights": "./training/weights/recce_best.pth"
+        "weights": "./training/pretrained/recce_best.pth"
     },
     
     
@@ -66,21 +66,21 @@ detector_map = {
     # All based on Xception
     'f3net': {
         "config": "./training/config/detector/f3net.yaml",
-        "weights": "./training/weights/f3net_best.pth"
+        "weights": "./training/pretrained/f3net_best.pth"
     },
     'spsl' : {
         "config": "./training/config/detector/spsl.yaml",
-        "weights": "./training/weights/spsl_best.pth"
+        "weights": "./training/pretrained/spsl_best.pth"
     },
     'srm': {
         "config": "./training/config/detector/srm.yaml",
-        "weights": "./training/weights/srm_best.pth"
+        "weights": "./training/pretrained/srm_best.pth"
     },
     
     # Video Models
     'altfreezing': {
         "config": "./training/config/detector/altfreezing.yaml",
-        "weights": "./training/weights/I3D_8x8_R50.pth"
+        "weights": "./training/pretrained/I3D_8x8_R50.pth"
     },
     
     
@@ -88,6 +88,14 @@ detector_map = {
 
 
 if __name__ == '__main__':
+    
+    if len(sys.argv) < 2:
+        print("Usage: python process_testset.py <model_name>")
+        print("Available models:")
+        for model in detector_map.keys():
+            print(f"- {model}")
+        sys.exit(1)
+        
     model = sys.argv[1]
     
     PREPROCESS = False
