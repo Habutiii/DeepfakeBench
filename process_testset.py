@@ -4,46 +4,116 @@ import sys
 from preprocessing.preprocess import main as preprocess
 from preprocessing.rearrange import main as rearrange
 from training.test import main as tests
+from pathlib import Path
 
-detector_config_map = {
-    'xception': "./training/config/detector/xception.yaml",
-    'ucf': "./training/config/detector/ucf.yaml",
-    'capsule_net': "./training/config/detector/capsule_net.yaml",
-}
-
-detector_weights_map = {
-    'xception': "./training/weights/xception_best.pth",
-    'ucf': "./training/weights/ucf_best.pth",
-    'capsule_net': "./training/weights/capsule_best.pth",
+detector_map = {
+    
+    ## Naive Models
+    'xception': {
+        "config":"./training/config/detector/xception.yaml",
+        "weights":"./training/weights/xception_best.pth"
+    },
+    
+    'resnet': {
+        "config":"./training/config/detector/resnet34.yaml",
+        "weights":"./training/weights/cnnaug_best.pth"
+    },
+    
+    'efficientnetb4': {
+        "config": "./training/config/detector/efficientnetb4.yaml",
+        "weights": "./training/weights/effnb4_best.pth"
+    },
+    
+    'meso4': {
+        "config": "./training/config/detector/meso4.yaml",
+        "weights": "./training/weights/meso4_best.pth"
+    },
+    
+    'meso4Inception': {
+        "config": "./training/config/detector/meso4Inception.yaml",
+        "weights": "./training/weights/meso4Incep_best.pth"
+    },
+    
+    # Spatial Models
+    
+    
+    'core': {  # Xception based model
+        "config":"./training/config/detector/core.yaml",
+        "weights":"./training/weights/core_best.pth"
+    },
+    'ucf': {  #  Xception based model
+        "config": "./training/config/detector/ucf.yaml",
+        "weights": "./training/weights/ucf_best.pth"
+    },
+    
+    'ffd' : {  # Xception based model
+        "config": "./training/config/detector/ffd.yaml",
+        "weights": "./training/weights/ffd_best.pth"
+    },
+    
+    'capsule': {   # Capsule Network based model
+        "config": "./training/config/detector/capsule_net.yaml",
+        "weights": "./training/weights/capsule_best.pth"
+    },
+    
+    'recce': {  # Designed based model
+        "config": "./training/config/detector/recce.yaml",
+        "weights": "./training/weights/recce_best.pth"
+    },
+    
+    
+    # Frequency Models
+    # All based on Xception
+    'f3net': {
+        "config": "./training/config/detector/f3net.yaml",
+        "weights": "./training/weights/f3net_best.pth"
+    },
+    'spsl' : {
+        "config": "./training/config/detector/spsl.yaml",
+        "weights": "./training/weights/spsl_best.pth"
+    },
+    'srm': {
+        "config": "./training/config/detector/srm.yaml",
+        "weights": "./training/weights/srm_best.pth"
+    },
+    
+    # Video Models
+    'altfreezing': {
+        "config": "./training/config/detector/altfreezing.yaml",
+        "weights": "./training/weights/I3D_8x8_R50.pth"
+    },
+    
+    
 }
 
 
 if __name__ == '__main__':
-    folder_name = sys.argv[1]
-    model = sys.argv[2]
+    model = sys.argv[1]
+    
+    PREPROCESS = False
+    
+    datasets = ["TestSet"]
 
-    detector_config = detector_config_map[model]
-    detector_weights = detector_weights_map[model]
+    detector_config = Path(detector_map[model]['config']).resolve()
+    detector_weights = Path(detector_map[model]['weights']).resolve()
 
-    src_dir = os.path.join(os.getcwd(), f'../deepfakebench-frontend/uploads/{folder_name}')
-    dest_dir = os.path.join(os.getcwd(), '../datasets/TestSet/fake')
+    if PREPROCESS:
+        preprocess()
+        print("Stage 1: Frames and Landmarks Generated!")
+        sys.stdout.flush()
+        
+        rearrange()
+        print("Stage 2: JSON File Generated!")
+        sys.stdout.flush()
+        
+    else:
+        print("Skipping Preprocessing Stage! As Preprocess is set to False.")
+        sys.stdout.flush()
+        
     
-    shutil.rmtree(dest_dir)
-    shutil.copytree(src_dir, dest_dir)
-
-    os.chdir(os.path.join(os.getcwd(), './preprocessing'))
-    preprocess()
-    print("Stage 1: Frames and Landmarks Generated!")
-    sys.stdout.flush()
-    
-    rearrange()
-    print("Stage 2: JSON File Generated!")
-    sys.stdout.flush()
-    
-    os.chdir(os.path.join(os.getcwd(), '../'))
-    
-    tests(["--detector_path", detector_config, "--test_dataset", "TestSet", "--weights_path", detector_weights])
-    shutil.move(os.path.join(os.getcwd(), f'./results/{model}/TestSet_results.csv'), os.path.join(src_dir, 'frame.csv'))
-    shutil.move(os.path.join(os.getcwd(), f'./results/{model}/TestSet_video_results.csv'), os.path.join(src_dir, 'video.csv'))
-    print("Stage 3: Results Generated!")
+    print("Stage 3: Testing Started!")
+    tests(detector_path=detector_config, test_datasets=datasets, weights_path=detector_weights)
+    # shutil.move(os.path.join(os.getcwd(), f'./results/{model}/TestSet_results.csv'), os.path.join(src_dir, 'frame.csv'))
+    # shutil.move(os.path.join(os.getcwd(), f'./results/{model}/TestSet_video_results.csv'), os.path.join(src_dir, 'video.csv'))
+    print("Stage 4: Results Generated!")
     sys.stdout.flush()

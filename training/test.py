@@ -188,26 +188,30 @@ def inference(model, data_dict):
     return predictions
 
 
-def main(passed_args=None):
+def main(detector_path, test_datasets=None, weights_path=None):
     # parse options and load config
-    args = parser.parse_args(passed_args)
-
-    with open(args.detector_path, 'r') as f:
+    
+    config = {}
+        
+    with open(detector_path, 'r') as f:
         config = yaml.safe_load(f)
+        
+    
+    config['workers'] = 0
+    
     if on_2060:
         config['lmdb_dir'] = r'I:\transform_2_lmdb'
         config['train_batchSize'] = 10
-        config['workers'] = 0
     else:
         #config['workers'] = 8
         config['lmdb_dir'] = r'./data/LMDBs'
-    weights_path = None
+
     # If arguments are provided, they will overwrite the yaml settings
-    if args.test_dataset:
-        config['test_dataset'] = args.test_dataset
-    if args.weights_path:
-        config['weights_path'] = args.weights_path
-        weights_path = args.weights_path
+    if test_datasets:
+        config['test_dataset'] = test_datasets
+    if weights_path:
+        config['weights_path'] = weights_path
+        config['pretrained'] = weights_path
     
     # init seed
     init_seed(config)
@@ -219,28 +223,23 @@ def main(passed_args=None):
     # prepare the testing data loader
     test_data_loaders = prepare_testing_data(config)
     
-    '''data_arr = []
-    for data_dict in test_data_loaders[config['test_dataset'][0]]:
-        data_arr.append(data_dict)
-    
-    with open('data.stuff' , 'wb') as f:
-        pickle.dump(data_arr, f)
-    torch.save(test_data_loaders[config['test_dataset'][0]], 'dataloader.pth')
-    
-    return'''
-
     # prepare the model (detector)
     model_class = DETECTOR[config['model_name']]
     model = model_class(config).to(device)
     epoch = 0
+    print("weights path: ", weights_path)
     if weights_path:
         try:
             epoch = int(weights_path.split('/')[-1].split('.')[0].split('_')[2])
         except:
             epoch = 0
-        ckpt = torch.load(weights_path, map_location=device)
-        model.load_state_dict(ckpt, strict=True)
-        print('===> Load checkpoint done!')
+            
+        try:
+            ckpt = torch.load(weights_path, map_location=device)
+            model.load_state_dict(ckpt, strict=True)
+            print('===> Load checkpoint done!')
+        except Exception as e:
+            print("Unable to load checkpoint: it may be loaded when building the backbone")
     else:
         print('Fail to load the pre-trained weights')
     
@@ -249,4 +248,5 @@ def main(passed_args=None):
     print('===> Test Done!')
 
 if __name__ == '__main__':
-    main()
+    args = parser.parse_args()
+    main(args.detector_path, args.test_dataset, args.weights_path)

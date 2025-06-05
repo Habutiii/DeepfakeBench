@@ -213,6 +213,7 @@ def video_manipulate(
     mode: str,
     num_frames: int, 
     stride: int, 
+    logger
     ) -> None:
     """
     Processes a single video file by detecting and cropping the largest face in each frame and saving the results.
@@ -233,7 +234,7 @@ def video_manipulate(
 
     # Define face detector and predictor models
     face_detector = dlib.get_frontal_face_detector()
-    predictor_path = './dlib_tools/shape_predictor_81_face_landmarks.dat'
+    predictor_path = str(Path(__file__).parent / 'dlib_tools/shape_predictor_81_face_landmarks.dat')
     ## Check if predictor path exists
     if not os.path.exists(predictor_path):
         logger.error(f"Predictor path does not exist: {predictor_path}")
@@ -324,6 +325,7 @@ def video_manipulate(
 
             # Save cropped face
             image_path = save_path_ / f"{cnt_frame:03d}.png"
+            
             if not image_path.is_file():
                 cv2.imwrite(str(image_path), cropped_face)
 
@@ -343,6 +345,7 @@ def video_manipulate(
         cap_org.release()
         if mask_path is not None:
             cap_mask.release()
+            
 
     # Iterate through the videos in the dataset and extract faces
     try:
@@ -395,6 +398,7 @@ def preprocess(dataset_path, mask_path, mode, num_frames, stride, logger):
                 mode,
                 num_frames,
                 stride,
+                logger
                 )
             )
         # Wait for all futures to complete and log any errors
@@ -413,7 +417,7 @@ def preprocess(dataset_path, mask_path, mode, num_frames, stride, logger):
 
 def main():
     # from config.yaml load parameters
-    yaml_path = './config.yaml'
+    yaml_path =  Path(__file__).parent / 'config.yaml'
     # open the yaml file
     try:
         with open(yaml_path, 'r') as f:
@@ -433,7 +437,7 @@ def main():
     dataset_path = Path(os.path.join(dataset_root_path, dataset_name))
 
     # Create logger
-    log_path = f'./logs/{dataset_name}.log'
+    log_path = Path(__file__).parent / 'logs/{dataset_name}.log'
     logger = create_logger(log_path)
 
     # Define dataset path based on the input arguments
@@ -489,15 +493,15 @@ def main():
 
     ## Custom Dataset
     elif dataset_name == 'TestSet':
-        #sub_dataset_names = ['fake', 'real']
-        sub_dataset_names = ['fake']
+        sub_dataset_names = ['fake', 'real']
+        # sub_dataset_names = ['fake']
         sub_dataset_paths = [Path(os.path.join(dataset_path, name)) for name in sub_dataset_names]
     else:
         raise ValueError(f"Dataset {dataset_name} not recognized")
     
     # Check if dataset path exists
     if not Path(dataset_path).exists():
-        logger.error(f"Dataset path does not exist: {dataset_path}")
+        logger.error(f"Dataset path does not exist: {Path(dataset_path).resolve()}")
         sys.exit()
 
     if len(sub_dataset_paths) != 0:

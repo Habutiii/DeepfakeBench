@@ -497,7 +497,10 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
         dataset_path = os.path.join(dataset_root_path, dataset_name)
         dataset_dict[dataset_name] = {'TestSet_Real': {'train': {}, 'test': {}, 'val': {}},
                                 'TestSet_Fake': {'train': {}, 'test': {}, 'val': {}}}
+        
+        print(f"processing dataset {dataset_name} in {dataset_path}")
         for folder in os.scandir(dataset_path):
+            print("dataset_path:",folder.name)
             if not os.path.isdir(folder):
                 continue
             elif folder.name in ['fake']:
@@ -532,7 +535,7 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
 
 def main():
     # from config.yaml load parameters
-    yaml_path = './config.yaml'
+    yaml_path = Path(__file__).parent / 'config.yaml'
     # open the yaml file
     try:
         with open(yaml_path, 'r') as f:
@@ -541,7 +544,7 @@ def main():
         print("YAML file parsing error:", e)
 
     dataset_name = config['rearrange']['dataset_name']['default']
-    dataset_root_path = config['rearrange']['dataset_root_path']['default']
+    dataset_root_path = Path(__file__).parent.parent / config['rearrange']['dataset_root_path']['default']
     output_file_path = config['rearrange']['output_file_path']['default']
     comp = config['rearrange']['comp']['default']
     perturbation = config['rearrange']['perturbation']['default']

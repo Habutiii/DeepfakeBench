@@ -265,7 +265,9 @@ class DeepfakeAbstractBaseDataset(data.Dataset):
                     frame_path_list.extend(frame_paths)
                     # video name save
                     video_name_list.extend([unique_video_name] * len(frame_paths))
-            
+        
+        if(len(label_list) == 0 or len(frame_path_list) == 0):
+            raise ValueError(f'No images or labels found for dataset {dataset_name} in {self.mode} mode.')
         # Shuffle the label and frame path lists in the same order
         shuffled = list(zip(label_list, frame_path_list, video_name_list))
         random.shuffle(shuffled)
