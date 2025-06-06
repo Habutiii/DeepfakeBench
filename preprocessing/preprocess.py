@@ -415,7 +415,7 @@ def preprocess(dataset_path, mask_path, mode, num_frames, stride, logger):
         duration_minutes = (end_time - start_time) / 60
         logger.info(f"Total time taken: {duration_minutes:.2f} minutes")
 
-def main():
+def main(target_folder=None):
     # from config.yaml load parameters
     yaml_path =  Path(__file__).parent / 'config.yaml'
     # open the yaml file
@@ -434,8 +434,9 @@ def main():
     num_frames = config['preprocess']['num_frames']['default']
     
     # use dataset_name and dataset_root_path to get dataset_path
-    dataset_path = Path(os.path.join(dataset_root_path, dataset_name))
 
+    dataset_path = str(Path(target_folder) if target_folder is not None else Path(os.path.join(dataset_root_path, dataset_name)))
+    dataset_name = "TestSet" if target_folder is not None else dataset_name
     # Create logger
     log_path = Path(__file__).parent / 'logs/{dataset_name}.log'
     logger = create_logger(log_path)
