@@ -64,7 +64,7 @@ import pandas as pd
 from pathlib import Path
 
 
-def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, compression_level='c23', perturbation = 'end_to_end'):
+def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, compression_level='c23', perturbation = 'end_to_end', dataset_path=None):
     """
     Description:
         - Generate a JSON file containing information about the specified datasets' videos and frames.
@@ -494,7 +494,7 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
                         dataset_dict[dataset_name][label]['val'][video_name] = {'label': label, 'frames': frame_paths}
 
     elif dataset_name == 'TestSet':
-        dataset_path = os.path.join(dataset_root_path, dataset_name)
+        dataset_path = dataset_path if dataset_path is not None else os.path.join(dataset_root_path, dataset_name)
         dataset_dict[dataset_name] = {'TestSet_Real': {'train': {}, 'test': {}, 'val': {}},
                                 'TestSet_Fake': {'train': {}, 'test': {}, 'val': {}}}
         
@@ -503,24 +503,13 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
             print("dataset_path:",folder.name)
             if not os.path.isdir(folder):
                 continue
-            elif folder.name in ['fake']:
+            elif folder.name in ['fake', 'real']:
                 if not os.path.isdir(os.path.join(dataset_path, folder.name, 'frames')):
                     continue
                 for video_path in os.scandir(os.path.join(dataset_path, folder.name, 'frames')):
                     if video_path.is_dir():
                         video_name = video_path.name
-                        label = 'TestSet_Fake'
-                        frame_paths = [os.path.join(video_path, frame.name) for frame in os.scandir(video_path)]
-                        dataset_dict[dataset_name][label]['train'][video_name] = {'label': label, 'frames': frame_paths}
-                        dataset_dict[dataset_name][label]['test'][video_name] = {'label': label, 'frames': frame_paths}
-                        dataset_dict[dataset_name][label]['val'][video_name] = {'label': label, 'frames': frame_paths}
-            elif folder.name in ['real']:
-                if not os.path.isdir(os.path.join(dataset_path, folder.name, 'frames')):
-                    continue
-                for video_path in os.scandir(os.path.join(dataset_path, folder.name, 'frames')):
-                    if video_path.is_dir():
-                        video_name = video_path.name
-                        label = 'TestSet_Real'
+                        label = 'TestSet_' + folder.name.capitalize()
                         frame_paths = [os.path.join(video_path, frame.name) for frame in os.scandir(video_path)]
                         dataset_dict[dataset_name][label]['train'][video_name] = {'label': label, 'frames': frame_paths}
                         dataset_dict[dataset_name][label]['test'][video_name] = {'label': label, 'frames': frame_paths}
@@ -533,7 +522,7 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
     # print the successfully generated dataset dictionary
     print(f"{dataset_name}.json generated successfully.")
 
-def main():
+def main(dataset_path=None, dataset_name=None):
     # from config.yaml load parameters
     yaml_path = Path(__file__).parent / 'config.yaml'
     # open the yaml file
@@ -543,13 +532,13 @@ def main():
     except yaml.parser.ParserError as e:
         print("YAML file parsing error:", e)
 
-    dataset_name = config['rearrange']['dataset_name']['default']
+    dataset_name = dataset_name if dataset_name is not None else config['rearrange']['dataset_name']['default']
     dataset_root_path = Path(__file__).parent.parent / config['rearrange']['dataset_root_path']['default']
     output_file_path = config['rearrange']['output_file_path']['default']
     comp = config['rearrange']['comp']['default']
     perturbation = config['rearrange']['perturbation']['default']
     # Call the generate_dataset_file function
-    generate_dataset_file(dataset_name, dataset_root_path, output_file_path, comp, perturbation)
+    generate_dataset_file(dataset_name, dataset_root_path, output_file_path, comp, perturbation, dataset_path=dataset_path)
 
 if __name__ == '__main__':
     main()
