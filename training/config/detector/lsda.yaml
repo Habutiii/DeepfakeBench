@@ -30,7 +30,7 @@ with_landmark: false   # whether to include facial landmark information in the i
 save_ckpt: false   # whether to save checkpoint
 save_feat: false   # whether to save features
 
-# label settings
+#labels
 label_dict:
   # DFD
   DFD_fake: 1
@@ -61,11 +61,12 @@ label_dict:
   # UADFV
   UADFV_Fake: 1
   UADFV_Real: 0
-  #stargan
-  0_real: 0
-  1_fake: 1
-  real: 0
-  fake: 1
+  # Roop
+  roop_Real: 0
+  roop_Fake: 1
+  # Custom
+  TestSet_Fake: 1
+  TestSet_Real: 0
 
 
 

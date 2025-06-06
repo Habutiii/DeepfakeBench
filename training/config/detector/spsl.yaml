@@ -32,19 +32,18 @@ with_landmark: false   # whether to include facial landmark information in the i
 save_ckpt: true   # whether to save checkpoint
 save_feat: true   # whether to save features
 
-# label settings
+#labels
 label_dict:
   # DFD
   DFD_fake: 1
   DFD_real: 0
-  FaceShifter: 1
-  FF-FH: 1
   # FF++ + FaceShifter(FF-real+FF-FH)
-  # ucf specific label setting
+  FF-SH: 1
+  FF-F2F: 1
   FF-DF: 1
-  FF-F2F: 2
-  FF-FS: 3
-  FF-NT: 4
+  FF-FS: 1
+  FF-NT: 1
+  FF-FH: 1
   FF-real: 0
   # CelebDF
   CelebDFv1_real: 0
@@ -64,9 +63,12 @@ label_dict:
   # UADFV
   UADFV_Fake: 1
   UADFV_Real: 0
-  # roop
-  roop_Fake: 1
+  # Roop
   roop_Real: 0
+  roop_Fake: 1
+  # Custom
+  TestSet_Fake: 1
+  TestSet_Real: 0
 
 # data augmentation
 use_data_augmentation: true  # Add this flag to enable/disable data augmentation

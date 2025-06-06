@@ -17,6 +17,44 @@ backbone_config:
   inc: 3
   dropout: false
 
+#labels
+label_dict:
+  # DFD
+  DFD_fake: 1
+  DFD_real: 0
+  # FF++ + FaceShifter(FF-real+FF-FH)
+  FF-SH: 1
+  FF-F2F: 1
+  FF-DF: 1
+  FF-FS: 1
+  FF-NT: 1
+  FF-FH: 1
+  FF-real: 0
+  # CelebDF
+  CelebDFv1_real: 0
+  CelebDFv1_fake: 1
+  CelebDFv2_real: 0
+  CelebDFv2_fake: 1
+  # DFDCP
+  DFDCP_Real: 0
+  DFDCP_FakeA: 1
+  DFDCP_FakeB: 1
+  # DFDC
+  DFDC_Fake: 1
+  DFDC_Real: 0
+  # DeeperForensics-1.0
+  DF_fake: 1
+  DF_real: 0
+  # UADFV
+  UADFV_Fake: 1
+  UADFV_Real: 0
+  # Roop
+  roop_Real: 0
+  roop_Fake: 1
+  # Custom
+  TestSet_Fake: 1
+  TestSet_Real: 0
+  
 # dataset
 all_dataset: [FaceForensics++, FF-F2F, FF-DF, FF-FS, FF-NT, FaceShifter, DeepFakeDetection, Celeb-DF-v1, Celeb-DF-v2, DFDCP, DFDC, DeeperForensics-1.0, UADFV]
 train_dataset: [FaceForensics++]
