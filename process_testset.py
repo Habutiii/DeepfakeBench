@@ -132,5 +132,5 @@ if __name__ == '__main__':
     
     print("Stage 3: Testing Started!")
     tests(detector_path=detector_config, test_datasets=["TestSet"], weights_path=detector_weights)
-    print("Stage 4: Results Generated in the 'results' folder!")
+    print(f"Stage 4: Results Generated in {Path(__file__).parent / 'results' / 'model'}")
     sys.stdout.flush()

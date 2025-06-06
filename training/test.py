@@ -37,6 +37,8 @@ from collections import defaultdict
 
 import argparse
 from logger import create_logger
+from datetime import datetime
+from pathlib import Path
 
 parser = argparse.ArgumentParser(description='Process some paths.')
 parser.add_argument('--detector_path', type=str, 
@@ -156,13 +158,16 @@ def test_epoch(model, test_data_loaders, model_name):
         output += f"time: {time.time() - start_time}"
 
         #write_to_csv(key, data_dict['image'][:5*32], predictions_nps, label_nps)
-        output_path = f"./results/{model_name}/"
+        output_path = Path(__file__).parent.parent / f"results/{model_name}"
         os.makedirs(output_path, exist_ok=True)
-        write_to_txt(f"{output_path}{key}", output)
-        write_to_csv(f'{output_path}{key}', data_dict['image'], predictions_nps, label_nps)
+        
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{model_name}_{key}_{ts}"
+        write_to_txt(output_path / filename, output)
+        write_to_csv(output_path / filename, data_dict['image'], predictions_nps, label_nps)
         if type(data_dict['image'][0]) is not list:
             video_names, video_preds, video_labels = get_video_data(data_dict['image'], predictions_nps, label_nps)
-            write_to_csv(f'{output_path}{key}_video', video_names, video_preds, video_labels)
+            write_to_csv(output_path / f'{model_name}_{key}_video_{ts}', video_names, video_preds, video_labels)
 
     return metrics_all_datasets
 
