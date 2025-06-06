@@ -81,16 +81,24 @@ class F3netDetector(AbstractDetector):
             if 'pointwise' in name:
                 state_dict[name] = weights.unsqueeze(-1).unsqueeze(-1)
         state_dict = {k:v for k, v in state_dict.items() if 'fc' not in k}
-        conv1_data = state_dict['conv1.weight'].data
+        
+        #check state_dict keys
+        conv1_data = state_dict['backbone.conv1.weight'].data
         backbone.load_state_dict(state_dict, False)
         logger.info('Load pretrained model from {}'.format(config['pretrained']))
 
-        # copy on conv1
-        # let new conv1 use old param to balance the network
-        backbone.conv1 = nn.Conv2d(12, 32, 3, 2, 0, bias=False)
-        for i in range(4):
-           backbone.conv1.weight.data[:, i*3:(i+1)*3, :, :] = conv1_data / 4.0
-        logger.info('Copy conv1 from pretrained model')
+        # # copy on conv1
+        # # let new conv1 use old param to balance the network
+        # backbone.conv1 = nn.Conv2d(12, 32, 3, 2, 0, bias=False)
+        # for i in range(4):
+        #    backbone.conv1.weight.data[:, i*3:(i+1)*3, :, :] = conv1_data / 4.0
+        # logger.info('Copy conv1 from pretrained model')
+        
+        # ^ the above code is not necessary, as the FAD head already has 12 channels
+        # Added the below code to load weight data directly
+        
+        backbone.conv1.weight.data = conv1_data.clone()
+        
         return backbone
     
     def build_loss(self, config):
