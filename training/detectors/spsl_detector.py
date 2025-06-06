@@ -78,7 +78,7 @@ class SpslDetector(AbstractDetector):
         state_dict = {k:v for k, v in state_dict.items() if 'fc' not in k}
 
         # remove conv1 from state_dict
-        conv1_data = state_dict.pop('conv1.weight')
+        conv1_data = state_dict.pop('backbone.conv1.weight')
 
         backbone.load_state_dict(state_dict, False)
         logger.info('Load pretrained model from {}'.format(config['pretrained']))
