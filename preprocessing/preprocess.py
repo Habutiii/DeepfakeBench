@@ -507,12 +507,21 @@ def main(target_folder=None):
 
     if len(sub_dataset_paths) != 0:
         # Check if sub_dataset path exists
-        for sub_dataset_path in sub_dataset_paths:
-            if not Path(sub_dataset_path).exists():
-                logger.error(f"Sub Dataset path does not exist: {sub_dataset_path}")
-                sys.exit()
+        # for sub_dataset_path in sub_dataset_paths:
+        #     if not Path(sub_dataset_path).exists():
+        #         logger.error(f"Sub Dataset path does not exist: {sub_dataset_path}")
+        #         sys.exit()
         # preprocess each sub_dataset
         for sub_dataset_path in sub_dataset_paths:
+            # Check if sub_dataset_path exists or is empty directory
+            if not Path(sub_dataset_path).exists():
+                logger.error(f"Sub Dataset path does not exist: {sub_dataset_path}")
+                continue
+                
+            elif not any(sub_dataset_path.iterdir()):
+                logger.warning(f"Skipped empty directory: {sub_dataset_path}")
+                continue
+                
             # only part of FaceForensics++ has mask
             if dataset_name == 'FaceForensics++' and sub_dataset_path.parent in mask_dataset_paths:
                 mask_dataset_path = os.path.join(sub_dataset_path.parent, "masks")

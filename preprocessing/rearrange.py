@@ -500,7 +500,6 @@ def generate_dataset_file(dataset_name, dataset_root_path, output_file_path, com
         
         print(f"processing dataset {dataset_name} in {dataset_path}")
         for folder in os.scandir(dataset_path):
-            print("dataset_path:",folder.name)
             if not os.path.isdir(folder):
                 continue
             elif folder.name in ['fake', 'real']:
