@@ -42,11 +42,12 @@ from scipy.ndimage.filters import gaussian_filter
 from skimage.transform import AffineTransform, warp
 
 from dataset.abstract_dataset import DeepfakeAbstractBaseDataset
+from pathlib import Path
 
 
 # Define face detector and predictor models
 face_detector = dlib.get_frontal_face_detector()
-predictor_path = './preprocessing/dlib_tools/shape_predictor_81_face_landmarks.dat'
+predictor_path = str( Path(__file__).parent.parent.parent /  'preprocessing/dlib_tools/shape_predictor_81_face_landmarks.dat')
 face_predictor = dlib.shape_predictor(predictor_path)
 
 
