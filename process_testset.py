@@ -6,85 +6,7 @@ from preprocessing.rearrange import main as rearrange
 from training.test import main as tests
 from pathlib import Path
 import argparse
-
-detector_map = {
-    
-    ## Naive Models
-    'xception': {
-        "config":"./training/config/detector/xception.yaml",
-        "weights":"./training/pretrained/xception_best.pth"
-    },
-    
-    'resnet': {
-        "config":"./training/config/detector/resnet34.yaml",
-        "weights":"./training/pretrained/cnnaug_best.pth"
-    },
-    
-    'efficientnetb4': {
-        "config": "./training/config/detector/efficientnetb4.yaml",
-        "weights": "./training/pretrained/effnb4_best.pth"
-    },
-    
-    'meso4': {
-        "config": "./training/config/detector/meso4.yaml",
-        "weights": "./training/pretrained/meso4_best.pth"
-    },
-    
-    'meso4Inception': {
-        "config": "./training/config/detector/meso4Inception.yaml",
-        "weights": "./training/pretrained/meso4Incep_best.pth"
-    },
-    
-    # Spatial Models
-    
-    
-    'core': {  # Xception based model
-        "config":"./training/config/detector/core.yaml",
-        "weights":"./training/pretrained/core_best.pth"
-    },
-    'ucf': {  #  Xception based model
-        "config": "./training/config/detector/ucf.yaml",
-        "weights": "./training/pretrained/ucf_best.pth"
-    },
-    
-    'ffd' : {  # Xception based model
-        "config": "./training/config/detector/ffd.yaml",
-        "weights": "./training/pretrained/ffd_best.pth"
-    },
-    
-    'capsule': {   # Capsule Network based model
-        "config": "./training/config/detector/capsule_net.yaml",
-        "weights": "./training/pretrained/capsule_best.pth"
-    },
-    
-    'recce': {  # Designed based model
-        "config": "./training/config/detector/recce.yaml",
-        "weights": "./training/pretrained/recce_best.pth"
-    },
-    
-    
-    # Frequency Models
-    # All based on Xception
-    'f3net': {
-        "config": "./training/config/detector/f3net.yaml",
-        "weights": "./training/pretrained/f3net_best.pth"
-    },
-    'spsl' : {
-        "config": "./training/config/detector/spsl.yaml",
-        "weights": "./training/pretrained/spsl_best.pth"
-    },
-    'srm': {
-        "config": "./training/config/detector/srm.yaml",
-        "weights": "./training/pretrained/srm_best.pth"
-    },
-    
-    # Video Models
-    'altfreezing': {
-        "config": "./training/config/detector/altfreezing.yaml",
-        "weights": "./training/pretrained/I3D_8x8_R50.pth"
-    },
-}
-
+from detector_map import DETECTOR_MAP
 
 if __name__ == '__main__':
     
@@ -104,14 +26,14 @@ if __name__ == '__main__':
     print("target path:", data_path)
 
     # Example: check if model is valid
-    if model not in detector_map:
+    if model not in DETECTOR_MAP:
         print("Invalid model. Available models:")
-        for model_name in detector_map.keys():
+        for model_name in DETECTOR_MAP.keys():
             print(f"- {model_name}")
         sys.exit(1)
 
-    detector_config = Path(detector_map[model]['config']).resolve()
-    detector_weights = Path(detector_map[model]['weights']).resolve()
+    detector_config = Path(DETECTOR_MAP[model]['config']).resolve()
+    detector_weights = Path(DETECTOR_MAP[model]['weights']).resolve()
 
     if PREPROCESS:
         print("Stage 1: Generating Frames and Landmarks!")
