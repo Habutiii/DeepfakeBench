@@ -24,10 +24,10 @@ DETECTOR_MAP = {
         "config": BASE_DIR / "training/config/detector/meso4Inception.yaml",
         "weights": BASE_DIR / "training/pretrained/meso4Incep_best.pth"
     },
-    'core': {
-        "config": BASE_DIR / "training/config/detector/core.yaml",
-        "weights": BASE_DIR / "training/pretrained/core_best.pth"
-    },
+    # 'core': {
+    #     "config": BASE_DIR / "training/config/detector/core.yaml",
+    #     "weights": BASE_DIR / "training/pretrained/core_best.pth"
+    # },
     'ucf': {
         "config": BASE_DIR / "training/config/detector/ucf.yaml",
         "weights": BASE_DIR / "training/pretrained/ucf_best.pth"
@@ -55,9 +55,9 @@ DETECTOR_MAP = {
     'srm': {
         "config": BASE_DIR / "training/config/detector/srm.yaml",
         "weights": BASE_DIR / "training/pretrained/srm_best.pth"
-    },
-    'altfreezing': {
-        "config": BASE_DIR / "training/config/detector/altfreezing.yaml",
-        "weights": BASE_DIR / "training/pretrained/I3D_8x8_R50.pth"
+    # },
+    # 'altfreezing': {
+    #     "config": BASE_DIR / "training/config/detector/altfreezing.yaml",
+    #     "weights": BASE_DIR / "training/pretrained/I3D_8x8_R50.pth"
     }
 }
