@@ -10,3 +10,4 @@ training/pretrained/ucf_best.pth
 *.xlsx
 *.mp4
 datasets/*
+results*/

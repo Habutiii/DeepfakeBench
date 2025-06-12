@@ -2,7 +2,7 @@
 log_dir: ./logs/testing_bench
 
 # model setting
-pretrained: ../DeepfakeBench/training/pretrained/meso4_best.pth   # path to a pre-trained model, if using one
+pretrained: ./training/pretrained/meso4_best.pth   # path to a pre-trained model, if using one
 model_name: meso4   # model name
 backbone_name: meso4  # backbone name
 

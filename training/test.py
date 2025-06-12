@@ -163,11 +163,12 @@ def test_epoch(model, test_data_loaders, model_name):
         
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{model_name}_{key}_{ts}"
-        write_to_txt(output_path / filename, output)
-        write_to_csv(output_path / filename, data_dict['image'], predictions_nps, label_nps)
+        # write_to_txt(output_path / filename, output)
         if type(data_dict['image'][0]) is not list:
             video_names, video_preds, video_labels = get_video_data(data_dict['image'], predictions_nps, label_nps)
             write_to_csv(output_path / f'{model_name}_{key}_video_{ts}', video_names, video_preds, video_labels)
+        else:
+            write_to_csv(output_path / filename, data_dict['image'], predictions_nps, label_nps)
 
     return metrics_all_datasets
 

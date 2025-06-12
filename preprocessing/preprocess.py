@@ -404,7 +404,7 @@ def preprocess(dataset_path, mask_path, mode, num_frames, stride, logger):
         # Wait for all futures to complete and log any errors
         for future in tqdm(concurrent.futures.as_completed(futures), total=len(movies_path_list)):
             # Print the current time
-            logger.info(f"Current time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            # logger.info(f"Current time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             try:
                 future.result()
             except Exception as e:

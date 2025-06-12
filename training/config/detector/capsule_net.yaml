@@ -2,7 +2,7 @@
 log_dir: ./logs/testing_bench
 
 # model setting
-pretrained: ../DeepfakeBench/training/pretrained/xception_best.pth   # path to a pre-trained model, if using one
+pretrained: ./training/pretrained/capsule_best.pth   # path to a pre-trained model, if using one
 model_name: capsule_net # model name
 backbone_name: xception  # no backbone VGGextractor
 num_classes: 2
