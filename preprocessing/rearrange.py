@@ -540,4 +540,10 @@ def main(dataset_path=None, dataset_name=None):
     generate_dataset_file(dataset_name, dataset_root_path, output_file_path, comp, perturbation, dataset_path=dataset_path)
 
 if __name__ == '__main__':
-    main()
+    # read arguments from command line
+    import argparse
+    parser = argparse.ArgumentParser(description='Rearrange dataset to a specific format.')
+    parser.add_argument('--dataset_path', type=str, default=None, help='Path to the dataset.')
+    parser.add_argument('--dataset_name', type=str, default=None, help='Name of the dataset.')
+    args = parser.parse_args()
+    main(args.dataset_path, args.dataset_name)
