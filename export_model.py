@@ -9,14 +9,20 @@ import yaml
 from detectors import DETECTOR
 # Import DETECTOR_MAP from detector_map.py
 from detector_map import DETECTOR_MAP
-from torchvision import T
+from torchvision import transforms as T
 from PIL import Image
-
-from preprocessing.preprocess import extract_aligned_face_dlib
-
 import dlib
 import numpy as np
 import cv2
+import os
+
+from skimage import transform as trans
+
+from preprocessing.preprocess import extract_aligned_face_dlib
+
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+
 
 
 
@@ -129,6 +135,7 @@ def load_model(detector_name, extra_config={}):
 
             # check if image is [0,1] range or [0,255] range
             if images.min() < 0.0:
+                print(images.min())
                 raise ValueError("Input images must be in [0, 1] or [0, 255] range.")
 
             # if images are in [0, 255] range, convert to [0, 1] range
@@ -155,160 +162,147 @@ def load_model(detector_name, extra_config={}):
 
 # the input image can be a PIL Image or a numpy array
 
+# Optimize face cropping by using multiprocessing
+from multiprocessing import Pool, cpu_count
+
+# Move process_image to the global scope
+def process_image(image, size):
+    """
+    Process a single image: detect, crop, and resize the face.
+    :param image: Input image as a numpy array (BGR format).
+    :param size: Size to resize the cropped face to.
+    :return: Resized face and bounding box.
+    """
+    # Initialize the face detector
+    face_detector = dlib.get_frontal_face_detector()
+
+    def extract_face_bbox(face_detector, image):
+        """
+        Detect the face and calculate the bounding box.
+        :param face_detector: Dlib face detector.
+        :param image: Input image as a numpy array (BGR format).
+        :return: Cropped face and bounding box coordinates (x_min, y_min, x_max, y_max).
+        """
+        # Detect faces in the image
+        faces = face_detector(image, 1)
+
+        if len(faces) > 0:
+            # Select the largest face
+            face = max(faces, key=lambda rect: rect.width() * rect.height())
+
+            # Calculate bounding box coordinates
+            x_min = max(0, face.left())
+            y_min = max(0, face.top())
+            x_max = min(image.shape[1], face.right())
+            y_max = min(image.shape[0], face.bottom())
+
+            # Crop the face
+            cropped_face = image[y_min:y_max, x_min:x_max]
+
+            return cropped_face, (x_min, y_min, x_max, y_max)
+
+        return None, None
+
+    # Detect and crop the face
+    cropped_face, bbox = extract_face_bbox(face_detector, image)
+
+    if cropped_face is not None:
+        # Debugging: Check the range of cropped face values
+        
+        if cropped_face is not None and cropped_face.min() < 0:
+            print("[DEBUG] Checking cropped face values in process_image:")
+            print("Cropped face min:", cropped_face.min())
+
+        # Resize the cropped face
+        resized_face = cv2.resize(cropped_face, (size, size))
+        # Convert to RGB format if needed
+        resized_face = cv2.cvtColor(resized_face, cv2.COLOR_BGR2RGB)
+        return resized_face, bbox
+    else:
+        return None, None
+
+# Update process_image_with_size to include indices
+def process_image_with_index(args):
+    index, image, size = args
+    cropped_face, bbox = process_image(image, size)
+    return index, cropped_face, bbox
+
+# Define a helper function for processing images with size
+def process_image_with_size(args):
+    image, size = args
+    return process_image(image, size)
+
+# Update face_cropper to sort results by index
 def face_cropper(images, size=256):
     """
     Crop the face from the image based on the bounding box.
-    :param image: PIL Image
-    :param size: Size to resize the cropped face to
-    :return: Cropped and resized face as a PIL Image
+    :param images: List of images as numpy arrays (BGR format).
+    :param size: Size to resize the cropped face to.
+    :return: Cropped and resized (RGB) face as a numpy array and the bounding box coordinates.
     """
+    results = []
 
-    def get_keypts(image, face, predictor, face_detector):
-        # detect the facial landmarks for the selected face
-        shape = predictor(image, face)
-        
-        # select the key points for the eyes, nose, and mouth
-        leye = np.array([shape.part(37).x, shape.part(37).y]).reshape(-1, 2)
-        reye = np.array([shape.part(44).x, shape.part(44).y]).reshape(-1, 2)
-        nose = np.array([shape.part(30).x, shape.part(30).y]).reshape(-1, 2)
-        lmouth = np.array([shape.part(49).x, shape.part(49).y]).reshape(-1, 2)
-        rmouth = np.array([shape.part(55).x, shape.part(55).y]).reshape(-1, 2)
-        
-        pts = np.concatenate([leye, reye, nose, lmouth, rmouth], axis=0)
+    with Pool(cpu_count()) as pool:
+        with tqdm(total=len(images), desc="Cropping Faces") as pbar:
+            for result in pool.imap_unordered(process_image_with_index, [(i, image, size) for i, image in enumerate(images)]):
+                results.append(result)
+                pbar.update(1)
 
-        return pts
+    # Sort results by index to maintain input order
+    results.sort(key=lambda x: x[0])
+    cropped_faces, bounding_boxes = zip(*[(res[1], res[2]) for res in results])
 
-    # input RGB image
-    def extract_aligned_face_dlib(face_detector, predictor, image, res=256, mask=None):
-        def img_align_crop(img, landmark=None, outsize=None, scale=1.3, mask=None):
-            """ 
-            align and crop the face according to the given bbox and landmarks
-            landmark: 5 key points
-            """
-
-            M = None
-            target_size = [112, 112]
-            dst = np.array([
-                [30.2946, 51.6963],
-                [65.5318, 51.5014],
-                [48.0252, 71.7366],
-                [33.5493, 92.3655],
-                [62.7299, 92.2041]], dtype=np.float32)
-
-            if target_size[1] == 112:
-                dst[:, 0] += 8.0
-
-            dst[:, 0] = dst[:, 0] * outsize[0] / target_size[0]
-            dst[:, 1] = dst[:, 1] * outsize[1] / target_size[1]
-
-            target_size = outsize
-
-            margin_rate = scale - 1
-            x_margin = target_size[0] * margin_rate / 2.
-            y_margin = target_size[1] * margin_rate / 2.
-
-            # move
-            dst[:, 0] += x_margin
-            dst[:, 1] += y_margin
-
-            # resize
-            dst[:, 0] *= target_size[0] / (target_size[0] + 2 * x_margin)
-            dst[:, 1] *= target_size[1] / (target_size[1] + 2 * y_margin)
-
-            src = landmark.astype(np.float32)
-
-            # use skimage tranformation
-            tform = trans.SimilarityTransform()
-            tform.estimate(src, dst)
-            M = tform.params[0:2, :]
-
-            # M: use opencv
-            # M = cv2.getAffineTransform(src[[0,1,2],:],dst[[0,1,2],:])
-
-            img = cv2.warpAffine(img, M, (target_size[1], target_size[0]))
-
-            if outsize is not None:
-                img = cv2.resize(img, (outsize[1], outsize[0]))
-            
-            if mask is not None:
-                mask = cv2.warpAffine(mask, M, (target_size[1], target_size[0]))
-                mask = cv2.resize(mask, (outsize[1], outsize[0]))
-                return img, mask
-            else:
-                return img, None
-
-        # Image size
-        height, width = image.shape[:2]
-
-        # Convert to rgb
-        # rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        # Detect with dlib
-        faces = face_detector(rgb, 1)
-        if len(faces):
-            # For now only take the biggest face
-            face = max(faces, key=lambda rect: rect.width() * rect.height())
-            
-            # Get the landmarks/parts for the face in box d only with the five key points
-            landmarks = get_keypts(rgb, face, predictor, face_detector)
-
-            # Align and crop the face
-            cropped_face, mask_face = img_align_crop(rgb, landmarks, outsize=(res, res), mask=mask)
-            # cropped_face = cv2.cvtColor(cropped_face, cv2.COLOR_RGB2BGR)
-            
-            # Extract the all landmarks from the aligned face
-            # face_align = face_detector(cropped_face, 1)
-            # if len(face_align) == 0:
-            #     return None
-
-            return cropped_face
-        
-        else:
-            return None
-
-    # Define face detector and predictor models
-    face_detector = dlib.get_frontal_face_detector()
-    predictor_path = str(Path(__file__).parent / 'preprocessing/dlib_tools/shape_predictor_81_face_landmarks.dat')
-    ## Check if predictor path exists
-    if not os.path.exists(predictor_path):
-        logger.error(f"Predictor path does not exist: {predictor_path}")
-        sys.exit()
-    predictor = dlib.shape_predictor(predictor_path)
-
-    # stores processed faces in rbg format
-    processed_faces = []
-
-    # Check if the input is a list of  PIL Image or a numpy array
-    if isinstance(images, Image.Image):
-        images = [images]  # Convert single image to list
-        
-    if isinstance(images, np.ndarray):
-        # assume loaded using OpenCV
-        images = [images]  # Convert single image to list
-    
-    # for PIL Images
-    if isinstance(images, list) and all(isinstance(img, Image.Image) for img in images):
-        for image in images:
-            processed_face, _, _ = _process_single_image(image, face_detector, predictor, size)
-            # Convert RGB numpy array to PIL Image
-            if processed_face is not None:
-                processed_face = Image.fromarray(processed_face)
-            processed_faces.append(processed_face)
-
-    # for openCV images
-    elif isinstance(images, list) and all((isinstance(img, np.ndarray) and img.ndim == 3 and imgeshape[2] == 3) for img in images):
-        for image in images:
-            # OpenCV loads images in BGR format, convert to RGB
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            processed_face, _, _ = _process_single_image(image, face_detector, predictor, size)
-            if processed_face is not None:
-                processed_face = Image.fromarray(processed_face)
-            processed_faces.append(processed_face)
-    else:
-        raise ValueError("Input images must be a list of PIL Images or numpy arrays with 3 channels.")
-
-    # returned a list PIL Images of processed faces
-    return processed_faces
+    return list(cropped_faces), list(bounding_boxes)
 
 
-    
+from concurrent.futures import ThreadPoolExecutor
+
+def face_paster(processed_faces, bounding_boxes, original_images):
+    """
+    Paste the processed faces back to the original images using multi-threading.
+    :param processed_faces: List of processed faces as numpy arrays.
+    :param bounding_boxes: List of bounding box coordinates (x_min, y_min, x_max, y_max).
+    :param original_images: List of original images as numpy arrays (BGR format).
+    :return: List of images with pasted faces.
+    """
+    def paste_face(face, bbox, original):
+        if face is not None and bbox is not None:
+            try:
+                # Ensure face is a valid NumPy array
+                if not isinstance(face, np.ndarray):
+                    # convert to numpy array if it's a PIL Image
+                    if isinstance(face, Image.Image):
+                        face = np.array(face)
+                        # Convert to BGR format if needed
+                        if face.ndim == 3 and face.shape[2] == 3:
+                            face = cv2.cvtColor(face, cv2.COLOR_RGB2BGR)
+                    else:
+                        raise ValueError("Invalid face data: not a NumPy array or PIL Image, got" + str(type(face)))
+
+                x_min, y_min, x_max, y_max = bbox
+
+                # Ensure bounding box is within image dimensions
+                x_min = max(0, x_min)
+                y_min = max(0, y_min)
+                x_max = min(original.shape[1], x_max)
+                y_max = min(original.shape[0], y_max)
+
+                # Resize the processed face to match the bounding box size
+                resized_face = cv2.resize(face, (x_max - x_min, y_max - y_min))
+
+                # Paste the resized face onto the original image
+                original[y_min:y_max, x_min:x_max] = resized_face
+
+            except Exception as e:
+                print(f"Error pasting face: {e}")
+
+        return original
+
+    pasted_images = []
+    with ThreadPoolExecutor() as executor:
+        with tqdm(total=len(processed_faces), desc="Pasting Faces") as pbar:
+            for result in executor.map(lambda args: paste_face(*args), zip(processed_faces, bounding_boxes, original_images)):
+                pasted_images.append(result)
+                pbar.update(1)
+
+    return pasted_images
