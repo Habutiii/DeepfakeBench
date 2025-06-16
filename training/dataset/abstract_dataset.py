@@ -29,6 +29,8 @@ from torchvision import transforms as T
 
 import albumentations as A
 
+from pathlib import Path
+
 from .albu import IsotropicResize
 
 FFpp_pool=['FaceForensics++','FaceShifter','DeepFakeDetection','FF-DF','FF-F2F','FF-FS','FF-NT']#
@@ -155,12 +157,15 @@ class DeepfakeAbstractBaseDataset(data.Dataset):
         # Try to get the dataset information from the JSON file
         if not os.path.exists(self.config['dataset_json_folder']):
             self.config['dataset_json_folder'] = self.config['dataset_json_folder'].replace('/Youtu_Pangu_Security_Public', '/Youtu_Pangu_Security/public')
+
+        json_file_path = Path(__file__).parent.parent.parent / self.config['dataset_json_folder'] / (dataset_name + '.json')
+        print(f'Loading dataset information from {json_file_path}')
         try:
-            with open(os.path.join(self.config['dataset_json_folder'], dataset_name + '.json'), 'r') as f:
+            with open(json_file_path, 'r') as f:
                 dataset_info = json.load(f)
         except Exception as e:
             print(e)
-            raise ValueError(f'dataset {dataset_name} not exist!')
+            raise ValueError(f'dataset {json_file_path} not exist!')
 
         # If JSON file exists, do the following data collection
         # FIXME: ugly, need to be modified here.
